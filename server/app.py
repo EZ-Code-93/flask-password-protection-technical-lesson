@@ -22,6 +22,8 @@ class Signup(Resource):
         user = User(
             username=json['username']
         )
+        # Set the password hash using the password_hash setter in the User model
+        user.password_hash = json['password']
         db.session.add(user)
         db.session.commit()
         return UserSchema().dump(user), 201
@@ -44,8 +46,9 @@ class Login(Resource):
         password = request.get_json()['password']
 
         user = User.query.filter(User.username == username).first()
-
-        if user:
+        # Authenticate the user with the provided password before setting the session
+        # authenticate() is the method we set up in the User model to check the password
+        if user and user.authenticate(password):
             session['user_id'] = user.id
             return UserSchema().dump(user), 200
 
